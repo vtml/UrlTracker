@@ -244,8 +244,18 @@ namespace InfoCaster.Umbraco.UrlTracker.Modules
                     response.StatusCode = redirectHttpCode.Value;
                     LoggingHelper.LogInformation("UrlTracker HttpModule | Response statuscode set to: {0}", response.StatusCode);
 
-                    if (!string.IsNullOrEmpty(redirectLocation))
-                        response.RedirectLocation = redirectLocation;
+                    var resolvedPath = redirectLocation.Replace(string.Concat(request.Url.Scheme, "://"), "");
+                    var regexReplace = new Regex("//+", RegexOptions.IgnoreCase);
+                    resolvedPath = regexReplace.Replace(resolvedPath, "/");
+
+                    if (resolvedPath.StartsWith("/"))
+                        resolvedPath = resolvedPath.Substring(1, resolvedPath.Length - 1);
+
+                    resolvedPath = string.Concat(request.Url.Scheme, "://", resolvedPath);
+                    LoggingHelper.LogInformation(string.Concat("Vinnie UrlTracker path ", resolvedPath));
+                    LoggingHelper.LogInformation(string.Concat("Vinnie Old UrlTracker ", redirectLocation));
+                    if (!string.IsNullOrEmpty(resolvedPath))
+                        response.RedirectLocation = resolvedPath;
 
                     response.End();
                 }
